@@ -1,4 +1,4 @@
-# FreeSearch — Two-Stage Deep Matching Pipeline: Low Level Design
+# Overlabs — Two-Stage Deep Matching Pipeline: Low Level Design
 
 **Date:** 2026-04-23
 **Status:** Approved for implementation

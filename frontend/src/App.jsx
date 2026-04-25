@@ -2,6 +2,8 @@ import { useState } from "react";
 import { CVUpload } from "./components/CVUpload";
 import { ProfessorForm } from "./components/ProfessorForm";
 import { ExtraContext } from "./components/ExtraContext";
+import { PurposeDropdown } from "./components/PurposeDropdown";
+import { PersonalizationPanel } from "./components/PersonalizationPanel";
 import { EmailOutput } from "./components/EmailOutput";
 import { LoadingState } from "./components/LoadingState";
 import { usePDFParser } from "./hooks/usePDFParser";
@@ -20,6 +22,9 @@ function App() {
   const [cvText, setCvText] = useState("");          // Extracted plain text
   const [extraContext, setExtraContext] = useState("");
   const [professor, setProfessor] = useState(INITIAL_PROFESSOR);
+  const [purpose, setPurpose] = useState("general");
+  const [studentS2Id, setStudentS2Id] = useState("");
+  const [writingSample, setWritingSample] = useState("");
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateError, setGenerateError] = useState(null);
@@ -40,12 +45,18 @@ function App() {
     setProfessor((prev) => ({ ...prev, [field]: value }));
   }
 
+  function handlePersonalizationChange(field, value) {
+    if (field === "studentS2Id") setStudentS2Id(value);
+    if (field === "writingSample") setWritingSample(value);
+  }
+
   function isFormValid() {
     return (
       cvText.trim() &&
       professor.professorName.trim() &&
       professor.university.trim() &&
-      professor.semanticScholarId.trim()
+      professor.semanticScholarId.trim() &&
+      purpose
     );
   }
 
@@ -64,6 +75,9 @@ function App() {
         professor_name: professor.professorName,
         university: professor.university,
         semantic_scholar_id: professor.semanticScholarId,
+        purpose,
+        student_s2_id: studentS2Id.trim() || undefined,
+        writing_sample: writingSample.trim() || undefined,
       });
       setResult(data);
     } catch (err) {
@@ -87,7 +101,7 @@ function App() {
             Overlabs
           </h1>
           <p className="mt-2 text-gray-500 text-sm">
-            Generate a personalized cold email to a professor — specific, technical, and actually worth reading.
+            Write the cold email professors actually read.
           </p>
         </div>
 
@@ -113,6 +127,14 @@ function App() {
             <hr className="border-gray-100" />
 
             <ProfessorForm values={professor} onChange={handleProfessorChange} />
+
+            <PurposeDropdown value={purpose} onChange={setPurpose} />
+
+            <PersonalizationPanel
+              studentS2Id={studentS2Id}
+              writingSample={writingSample}
+              onChange={handlePersonalizationChange}
+            />
 
             {generateError && (
               <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">

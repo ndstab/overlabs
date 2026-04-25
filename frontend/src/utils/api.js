@@ -10,6 +10,9 @@ const BASE = "/api";
  * @param {string} payload.professor_name
  * @param {string} payload.university
  * @param {string} payload.semantic_scholar_id
+ * @param {string} payload.purpose
+ * @param {string} [payload.student_s2_id]
+ * @param {string} [payload.writing_sample]
  * @returns {Promise<{ subject_line: string, email_body: string }>}
  */
 export async function generateEmail(payload) {

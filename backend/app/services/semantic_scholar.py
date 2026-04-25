@@ -7,18 +7,20 @@ SEMANTIC_SCHOLAR_BASE = "https://api.semanticscholar.org/graph/v1"
 
 PAPER_FIELDS = "title,abstract,year,citationCount,externalIds"
 
+PROFESSOR_PAPER_LIMIT = 50
+PROFESSOR_FETCH_POOL = 200
+STUDENT_FETCH_POOL = 50
+
 
 def extract_author_id(raw: str) -> str:
     """
     Accepts either a bare numeric author ID or a full Semantic Scholar profile URL.
-    e.g. "https://www.semanticscholar.org/author/Jane-Doe/1234567" → "1234567"
+    e.g. "https://www.semanticscholar.org/author/Jane-Doe/1234567" -> "1234567"
     """
     raw = raw.strip()
-    # Try to extract a numeric ID from a URL
     match = re.search(r"/(\d+)/?$", raw)
     if match:
         return match.group(1)
-    # If it's already a bare ID (all digits or alphanumeric S2 IDs)
     if re.match(r"^[0-9]+$", raw):
         return raw
     raise ValueError(
@@ -27,77 +29,79 @@ def extract_author_id(raw: str) -> str:
     )
 
 
-async def fetch_professor_papers(
-    author_id: str,
-    api_key: Optional[str] = None,
-) -> list[dict]:
-    """
-    Fetch up to 30 papers for a given Semantic Scholar author ID.
-    Returns 15 most cited + 15 most recent, deduplicated.
-    Each paper: {title, abstract, year, citation_count}
-    """
-    headers = {}
-    if api_key:
-        headers["x-api-key"] = api_key
-
-    url = f"{SEMANTIC_SCHOLAR_BASE}/author/{author_id}/papers"
-    params = {
-        "fields": PAPER_FIELDS,
-        "limit": 100,  # fetch a larger pool to select from
+def _normalize_paper(p: dict) -> dict:
+    external_ids = p.get("externalIds") or {}
+    return {
+        "title": p.get("title") or "",
+        "abstract": (p.get("abstract") or "").strip(),
+        "year": p.get("year"),
+        "citation_count": p.get("citationCount") or 0,
+        "arxiv_id": external_ids.get("ArXiv"),
     }
+
+
+async def _fetch_author_papers(
+    author_id: str,
+    pool_limit: int,
+    api_key: Optional[str],
+) -> list[dict]:
+    headers = {"x-api-key": api_key} if api_key else {}
+    url = f"{SEMANTIC_SCHOLAR_BASE}/author/{author_id}/papers"
+    params = {"fields": PAPER_FIELDS, "limit": pool_limit}
 
     async with httpx.AsyncClient(timeout=20.0) as client:
         response = await client.get(url, params=params, headers=headers)
-
-    print(f"[DEBUG] S2 request url: {response.url}")
-    print(f"[DEBUG] S2 request headers sent: {headers}")
-    print(f"[DEBUG] S2 response status: {response.status_code}")
-    print(f"[DEBUG] S2 response body: {response.text[:200]}")
 
     if response.status_code == 404:
         raise ValueError(f"Author ID '{author_id}' not found on Semantic Scholar.")
     if response.status_code != 200:
         raise RuntimeError(
-            f"Semantic Scholar API returned {response.status_code}: {response.text}"
+            f"Semantic Scholar API returned {response.status_code}: {response.text[:200]}"
         )
 
     data = response.json()
-    papers: list[dict] = data.get("data", [])
+    raw_papers: list[dict] = data.get("data", [])
+    normalized = [_normalize_paper(p) for p in raw_papers if p.get("title")]
+    return [p for p in normalized if p["abstract"]]
 
-    # Normalize
-    normalized = [
-        {
-            "title": p.get("title") or "",
-            "abstract": p.get("abstract") or "",
-            "year": p.get("year"),
-            "citation_count": p.get("citationCount", 0),
-        }
-        for p in papers
-        if p.get("title")  # skip papers with no title
-    ]
 
-    # Filter out papers with no abstract (not useful for overlap detection)
-    with_abstract = [p for p in normalized if p["abstract"].strip()]
+async def fetch_professor_papers(
+    author_id: str,
+    api_key: Optional[str] = None,
+) -> list[dict]:
+    """
+    Fetch up to PROFESSOR_PAPER_LIMIT papers for a Semantic Scholar author.
+    Selects half by citation count, half by recency, deduplicated by title.
+    """
+    papers = await _fetch_author_papers(author_id, PROFESSOR_FETCH_POOL, api_key)
 
-    # 15 most cited
-    by_citations = sorted(with_abstract, key=lambda p: p["citation_count"], reverse=True)
-    top_cited = by_citations[:15]
-
-    # 15 most recent
+    half = PROFESSOR_PAPER_LIMIT // 2
+    by_citations = sorted(papers, key=lambda p: p["citation_count"], reverse=True)[:half]
     by_recency = sorted(
-        [p for p in with_abstract if p["year"] is not None],
+        [p for p in papers if p["year"] is not None],
         key=lambda p: p["year"],
         reverse=True,
-    )
-    top_recent = by_recency[:15]
+    )[:half]
 
-    # Deduplicate by title
-    seen_titles: set[str] = set()
+    seen: set[str] = set()
     merged: list[dict] = []
-    for paper in top_cited + top_recent:
+    for paper in by_citations + by_recency:
         key = paper["title"].lower().strip()
-        if key not in seen_titles:
-            seen_titles.add(key)
+        if key not in seen:
+            seen.add(key)
             merged.append(paper)
+        if len(merged) >= PROFESSOR_PAPER_LIMIT:
+            break
 
     return merged
+
+
+async def fetch_student_papers(
+    author_id: str,
+    api_key: Optional[str] = None,
+) -> list[dict]:
+    """
+    Fetch all of a student's papers. Students typically have <10 papers,
+    so no top-N selection is applied.
+    """
+    return await _fetch_author_papers(author_id, STUDENT_FETCH_POOL, api_key)
