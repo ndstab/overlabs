@@ -1,4 +1,4 @@
-# FreeSearch — Cold Email Generator for Research Positions
+# Overlabs — Cold Email Generator for Research Positions
 
 ## Project Overview
 
@@ -30,7 +30,7 @@ No auth, no database, no payment — purely stateless for V1. Every request is a
 ## Folder Structure
 
 ```
-freesearch/
+overlabs/
 ├── CLAUDE.md
 ├── frontend/
 │   ├── index.html

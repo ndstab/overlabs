@@ -9,7 +9,7 @@ from app.api.routes.generate import router as generate_router
 # Explicitly resolve .env relative to this file so it works regardless of CWD
 load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / ".env")
 
-app = FastAPI(title="FreeSearch API", version="0.1.0")
+app = FastAPI(title="Overlabs API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,

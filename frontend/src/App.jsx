@@ -84,7 +84,7 @@ function App() {
         {/* Header */}
         <div className="mb-10 text-center">
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-            FreeSearch
+            Overlabs
           </h1>
           <p className="mt-2 text-gray-500 text-sm">
             Generate a personalized cold email to a professor — specific, technical, and actually worth reading.
