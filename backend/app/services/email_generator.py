@@ -50,22 +50,22 @@ Each paper below includes either full text (when an arXiv version exists) or the
 
 WHAT TO WRITE
 
-Subject line: concrete, no clichés. Format: "Research inquiry — <specific topic>" using a real concept from one of the professor's papers that connects to the student's work.
+Subject line: concrete, no clichés. Format: "Research inquiry — <specific topic>" where the topic draws from BOTH the professor's research (a paper topic, method, or finding) AND the student's completed work. A subject that references only the student's future interests gives the professor no reason to open it. Keep it under 70 characters.
 
 Email body, in this order:
 
 1. Salutation: "Dear Prof. {professor_last_name},"
 
-2. One concrete intro sentence: current role/institution + the student's primary technical focus area. If the CV's degree program is NOT in the professor's research area (e.g., a Civil Engineering student emailing a Computer Vision lab), include a brief honest bridge in the same sentence — name how they got into the field (a minor, a recent project pivot, ML coursework). Don't apologize for the background; just preempt the question. If the degree IS in-field, omit this clause.
+2. One concrete intro sentence: current role/institution + the student's primary technical focus area. If the degree program is not in the professor's field, bridge it through named facts only — mention the specific minor or the project that demonstrates the focus. Do not write any sentence that observes, acknowledges, or comments on the degree mismatch; name the facts and let the reader draw the inference. If the degree is in-field, omit the bridge entirely.
 
-3. 2-3 sentences on the student's most relevant work, pulled from the CV{student_papers_phrase}. Pick ONLY items that connect to the professor's research area. If the CV mentions unrelated experience (e.g., LLM agents in an email to a 3D vision lab), do NOT include it — it dilutes the signal. When citing metrics, anchor them: name the baseline or direction (e.g., "0.44 LPIPS — lower is better — outperforming the StyleGAN baseline").
+3. 2-3 sentences on the student's most relevant work, pulled from the CV{student_papers_phrase}. Before writing this section: rank every project from the CV by direct relevance to THIS professor's papers. Include only the top 1-2. For each included project, you must be able to state: "This connects to [Professor's Paper X] because both [specific shared method, task type, or problem]." If you cannot complete that sentence for a project, omit it — no matter how technically impressive it is. Describe included work by what it produced (a technique, a result, a finding), not by effort or intent. If the student built a novel method with comparisons to baselines, that is research; describe it as such. When citing metrics, anchor them: name the baseline or direction (e.g., "0.44 LPIPS — lower is better — outperforming the StyleGAN baseline").
 
 4. The overlap section, 3-5 sentences. You MUST cite EXACTLY TWO of the professor's papers explicitly, chosen to cover DISTINCT connection types:
    - Paper A — methodological bridge: a named technique, formulation, or stated limitation in the paper that the student's prior technical work directly engages with at the mechanism level.
    - Paper B — domain bridge: a paper closer to the student's specific subject matter (same task type, dataset family, modality, or applied problem they have actually worked on). This is often the less-obvious pick and is where the email gets its credibility.
    For EACH of the two papers, you must (a) name a concrete detail from the paper — a method name, a specific result, a stated failure mode, a dataset choice, an experimental finding — and (b) state in mechanical terms how a specific technique or result from the student's own completed work addresses, extends, contrasts with, or is constrained by that detail.
 
-5. One direct ask sentence: {purpose_instruction} Use direct phrasing ("I'd like to discuss…", "Could we set up a short call…"). Do not use conditional/passive forms like "I would welcome the opportunity".
+5. Ask. The ask must take this form: a direct statement of what you want + one concrete follow-up question. Model: "I'd like to discuss [specific thing]. Would you have [time] for a call?" Do not soften or hedge: "I would welcome", "I'd love the opportunity", "I'm hoping to", "if you'd be open" are all forms of asking permission. State intent, then ask a yes/no question.
 
 6. Sign-off: "Best regards," followed on the next line by the student's name (use the name from the CV; if no clear name, use "[Your name]").
 
@@ -76,8 +76,9 @@ CONSTRAINTS
 - Forbidden phrases (do not use any variant): "deeply inspired", "groundbreaking work", "I was fascinated by", "I have always been passionate about", "your impressive research", "I am writing to express my interest in", "I would welcome the opportunity", "it would be an honor", "I would be grateful".
 - Forbidden filler verbs in the overlap section: "maps onto", "aligns with", "connects to", "resonates with", "is directly relevant to", "is analogous to" — these are placeholder phrases used to skip explaining the mechanism. State the mechanism instead.
 - Each cited paper's overlap must contain at least one detail that would be impossible to write without having read that specific paper.
+- When surfacing an open research question or gap, frame it as something the student wants to investigate — "I want to understand whether X", "the open question I want to pursue is Y" — not as a distanced observation ("it is unclear whether", "there is an open question about"). Active framing signals a collaborator; distanced framing signals a literature reviewer.
 - DO NOT invent paraphrased "named concepts" attributed to the professor's papers. If you write a phrase like "the paper's notion of X" or "their concept of X" or "their formulation of X", X must be EXACT terminology from the paper text. If you cannot find the exact terminology, drop the named-concept framing and describe the actual technique in your own words without attributing a label to the paper.
-- DO NOT claim equivalence between two different failure modes if the underlying mechanisms differ. An analogy must hold at the mechanism level, not just at the surface description. If the analogy doesn't hold mechanically, drop it and describe a contrast or a question instead.
+- When drawing a parallel between the student's work and the professor's, use this structure: "In [paper], [specific thing] happens because [mechanism]. In [student's work], [specific thing] happens because [mechanism]." This makes the parallel visible and testable. Never claim two problems are "exactly" or "precisely" the same — state how they are structurally related and where they diverge.
 - Do not invent things about the student that are not in the CV or context. Do not invent things about the professor's papers.
 - Do not conflate the student's stated future research interests with the technical scope of their existing projects. If the CV describes a project as image-based, do not call it video-based. If a project is on classification, do not call it generation. Stick strictly to the modality, task, and methods as written in the CV. Future interests stated in the extra context belong in the framing of the ask or in the bridge between past work and the professor's research, not in the description of completed work itself.
 {writing_sample_clause}
