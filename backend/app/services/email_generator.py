@@ -51,7 +51,7 @@ Each paper below includes either full text (when an arXiv version exists) or the
 
 WHAT TO WRITE
 
-Subject line: concrete, no clichés. Format: "Research inquiry — <specific topic>" where the topic draws from BOTH the professor's research (a paper topic, method, or finding) AND the student's completed work. A subject that references only the student's future interests gives the professor no reason to open it. Keep it under 70 characters.
+Subject line: concrete, no clichés. Format: "Research inquiry: <specific topic>" where the topic draws from BOTH the professor's research (a paper topic, method, or finding) AND the student's completed work. A subject that references only the student's future interests gives the professor no reason to open it. Keep it under 70 characters. Do not use em dashes in the subject.
 
 Email body, in this order:
 
@@ -59,7 +59,7 @@ Email body, in this order:
 
 2. One concrete intro sentence: current role/institution + the student's primary technical focus area. If the degree program is not in the professor's field, bridge it through named facts only — mention the specific minor or the project that demonstrates the focus. Do not write any sentence that observes, acknowledges, or comments on the degree mismatch; name the facts and let the reader draw the inference. If the degree is in-field, omit the bridge entirely.
 
-3. 2-3 sentences on the student's most relevant work, pulled from the CV{student_papers_phrase}. Before writing this section: rank every project from the CV by direct relevance to THIS professor's papers. Include only the top 1-2. For each included project, you must be able to state: "This connects to [Professor's Paper X] because both [specific shared method, task type, or problem]." If you cannot complete that sentence for a project, omit it — no matter how technically impressive it is. Describe included work by what it produced (a technique, a result, a finding), not by effort or intent. If the student built a novel method with comparisons to baselines, that is research; describe it as such. When citing metrics, anchor them: name the baseline or direction (e.g., "0.44 LPIPS — lower is better — outperforming the StyleGAN baseline").
+3. 2-3 sentences on the student's most relevant work, pulled from the CV{student_papers_phrase}. Before writing this section: rank every project from the CV by direct relevance to THIS professor's papers. Include only the top 1-2. For each included project, you must be able to state: "This connects to [Professor's Paper X] because both [specific shared method, task type, or problem]." If you cannot complete that sentence for a project, omit it — no matter how technically impressive it is. Describe included work by what it produced (a technique, a result, a finding), not by effort or intent. If the student built a novel method with comparisons to baselines, that is research; describe it as such. When citing metrics, anchor them: name the baseline or direction (e.g., "0.44 LPIPS (lower is better), outperforming the StyleGAN baseline").
 
 4. The overlap section, 3-5 sentences. You MUST cite EXACTLY TWO of the professor's papers explicitly, chosen to cover DISTINCT connection types:
    - Paper A — methodological bridge: a named technique, formulation, or stated limitation in the paper that the student's prior technical work directly engages with at the mechanism level.
@@ -75,6 +75,7 @@ CONSTRAINTS
 - Length: 240-320 words for the body. Tight. No filler.
 - Tone: professional, direct, genuine. Treat the professor as a peer in the field, not an idol.
 - Forbidden phrases (do not use any variant): "deeply inspired", "groundbreaking work", "I was fascinated by", "I have always been passionate about", "your impressive research", "I am writing to express my interest in", "I would welcome the opportunity", "it would be an honor", "I would be grateful".
+- Do not use em dashes (—) anywhere in the subject or body. Use commas, colons, periods, or parentheses instead. This applies to every sentence, including parenthetical asides and metric anchoring.
 - Forbidden filler verbs in the overlap section: "maps onto", "aligns with", "connects to", "resonates with", "is directly relevant to", "is analogous to" — these are placeholder phrases used to skip explaining the mechanism. State the mechanism instead.
 - Each cited paper's overlap must contain at least one detail that would be impossible to write without having read that specific paper.
 - When surfacing an open research question or gap, frame it as something the student wants to investigate — "I want to understand whether X", "the open question I want to pursue is Y" — not as a distanced observation ("it is unclear whether", "there is an open question about"). Active framing signals a collaborator; distanced framing signals a literature reviewer.
