@@ -35,8 +35,8 @@ export function LoadingState() {
           {STAGES[stageIndex].label}
         </p>
         <p className="text-xs text-gray-400">
-          Reading 7 papers in full and writing a grounded email. This usually
-          takes 25–45 seconds.
+          Reading up to 7 of the professor's papers in full and writing a
+          grounded email. This usually takes 25–45 seconds.
         </p>
       </div>
     </div>

@@ -1,5 +1,6 @@
 .env
 backend/venv
+backend/logs/
 frontend/node_modules
 docs/*
 CLAUDE.md

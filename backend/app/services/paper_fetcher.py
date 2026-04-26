@@ -1,12 +1,19 @@
 import asyncio
+import logging
 import re
 from typing import Optional
 
 import httpx
 import pymupdf
 
+logging.getLogger("pymupdf").setLevel(logging.ERROR)
 
 ARXIV_PDF_URL = "https://arxiv.org/pdf/{arxiv_id}"
+
+# Keep the most informative portion of each paper's full text.
+# ~12 000 chars ≈ 3 000 tokens — covers intro, methods, results, discussion for
+# most CS/ML papers after references are stripped.
+MAX_FULL_TEXT_CHARS = 12_000
 
 REFERENCES_HEADER = re.compile(
     r"\n\s*(references|bibliography)\s*\n",
@@ -41,7 +48,15 @@ def _clean_paper_text(text: str) -> str:
     ]
     text = "\n".join(cleaned_lines)
     text = WHITESPACE_RUN.sub("\n\n", text)
-    return text.strip()
+    text = text.strip()
+    if len(text) > MAX_FULL_TEXT_CHARS:
+        text = text[:MAX_FULL_TEXT_CHARS]
+        # Trim to last complete sentence so the cut is clean.
+        last_period = text.rfind(". ")
+        if last_period > MAX_FULL_TEXT_CHARS * 0.8:
+            text = text[: last_period + 1]
+        text += "\n\n[truncated]"
+    return text
 
 
 def _extract_pdf_text(pdf_bytes: bytes) -> str:
