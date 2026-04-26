@@ -1,11 +1,11 @@
 const BASE = "/api";
 
 /**
- * Calls POST /generate and returns { subject_line, email_body }.
+ * Calls POST /generate with multipart/form-data and returns { subject_line, email_body }.
  * Throws an Error with a user-facing message on failure.
  *
  * @param {Object} payload
- * @param {string} payload.cv_text
+ * @param {File}   payload.cv_file
  * @param {string} payload.extra_context
  * @param {string} payload.professor_name
  * @param {string} payload.university
@@ -16,10 +16,20 @@ const BASE = "/api";
  * @returns {Promise<{ subject_line: string, email_body: string }>}
  */
 export async function generateEmail(payload) {
+  const form = new FormData();
+  form.append("cv_file", payload.cv_file);
+  form.append("professor_name", payload.professor_name);
+  form.append("university", payload.university);
+  form.append("semantic_scholar_id", payload.semantic_scholar_id);
+  form.append("purpose", payload.purpose);
+  form.append("extra_context", payload.extra_context ?? "");
+  if (payload.student_s2_id) form.append("student_s2_id", payload.student_s2_id);
+  if (payload.writing_sample) form.append("writing_sample", payload.writing_sample);
+
   const response = await fetch(`${BASE}/generate`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: form,
+    // Do NOT set Content-Type — browser sets it with the correct boundary automatically
   });
 
   if (!response.ok) {

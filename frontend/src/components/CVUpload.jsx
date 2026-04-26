@@ -5,10 +5,8 @@ import { useRef } from "react";
  * Props:
  *   onFile(file: File) — called when a PDF is selected
  *   fileName: string | null — name of the currently loaded file
- *   isParsing: boolean
- *   parseError: string | null
  */
-export function CVUpload({ onFile, fileName, isParsing, parseError }) {
+export function CVUpload({ onFile, fileName }) {
   const inputRef = useRef(null);
 
   function handleDrop(e) {
@@ -42,9 +40,7 @@ export function CVUpload({ onFile, fileName, isParsing, parseError }) {
           onChange={handleChange}
         />
 
-        {isParsing ? (
-          <p className="text-sm text-indigo-600 font-medium">Parsing PDF...</p>
-        ) : fileName ? (
+        {fileName ? (
           <div className="text-center">
             <p className="text-sm font-medium text-gray-800">{fileName}</p>
             <p className="text-xs text-gray-500 mt-1">Click or drop to replace</p>
@@ -71,10 +67,6 @@ export function CVUpload({ onFile, fileName, isParsing, parseError }) {
           </div>
         )}
       </div>
-
-      {parseError && (
-        <p className="text-sm text-red-600">{parseError}</p>
-      )}
     </div>
   );
 }

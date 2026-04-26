@@ -1,8 +1,10 @@
 import asyncio
 import os
-from fastapi import APIRouter, HTTPException
+from typing import Optional
 
-from app.models.schemas import GenerateRequest, GenerateResponse
+from fastapi import APIRouter, Form, HTTPException, UploadFile, File
+
+from app.models.schemas import GenerateResponse, Purpose
 from app.services.semantic_scholar import (
     extract_author_id,
     fetch_professor_papers,
@@ -11,6 +13,7 @@ from app.services.semantic_scholar import (
 from app.services.paper_selector import select_relevant_papers
 from app.services.paper_fetcher import fetch_papers_full_text
 from app.services.email_generator import generate_email
+from app.services.pdf_parser import extract_text_from_pdf
 from app.services.pipeline_logger import PipelineLogger
 
 
@@ -20,34 +23,53 @@ DEFAULT_SELECTION_COUNT = 7
 
 
 @router.post("/generate", response_model=GenerateResponse)
-async def generate_cold_email(request: GenerateRequest):
+async def generate_cold_email(
+    cv_file: UploadFile = File(..., description="CV as PDF"),
+    professor_name: str = Form(...),
+    university: str = Form(...),
+    semantic_scholar_id: str = Form(...),
+    purpose: Purpose = Form("general"),
+    extra_context: str = Form(""),
+    student_s2_id: Optional[str] = Form(None),
+    writing_sample: Optional[str] = Form(None),
+):
     s2_key = os.environ.get("SEMANTIC_SCHOLAR_API_KEY")
     log = PipelineLogger()
+
+    # Parse CV PDF server-side
+    if cv_file.content_type not in ("application/pdf", "application/octet-stream"):
+        raise HTTPException(status_code=422, detail="Uploaded file must be a PDF.")
+    pdf_bytes = await cv_file.read()
+    try:
+        cv_text = extract_text_from_pdf(pdf_bytes)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
     log.record(
         "request",
         {
-            "professor_name": request.professor_name,
-            "university": request.university,
-            "semantic_scholar_id": request.semantic_scholar_id,
-            "purpose": request.purpose,
-            "student_s2_id": request.student_s2_id,
-            "cv_text_chars": len(request.cv_text),
-            "extra_context_chars": len(request.extra_context or ""),
-            "writing_sample_chars": len(request.writing_sample or ""),
+            "professor_name": professor_name,
+            "university": university,
+            "semantic_scholar_id": semantic_scholar_id,
+            "purpose": purpose,
+            "student_s2_id": student_s2_id,
+            "cv_text_chars": len(cv_text),
+            "extra_context_chars": len(extra_context or ""),
+            "writing_sample_chars": len(writing_sample or ""),
         },
     )
 
     # Resolve professor author ID
     try:
-        professor_author_id = extract_author_id(request.semantic_scholar_id)
+        professor_author_id = extract_author_id(semantic_scholar_id)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
     # Resolve student author ID (optional)
     student_author_id: str | None = None
-    if request.student_s2_id and request.student_s2_id.strip():
+    if student_s2_id and student_s2_id.strip():
         try:
-            student_author_id = extract_author_id(request.student_s2_id)
+            student_author_id = extract_author_id(student_s2_id)
         except ValueError as e:
             raise HTTPException(
                 status_code=422,
@@ -87,19 +109,18 @@ async def generate_cold_email(request: GenerateRequest):
             detail="No papers with abstracts found for this professor on Semantic Scholar.",
         )
 
-    # Step 2: Stage 1 selection (student papers used as abstracts only — no full-text fetch)
+    # Step 2: Stage 1 selection
     try:
         selected_papers = await select_relevant_papers(
             papers=professor_papers,
-            cv_text=request.cv_text,
-            extra_context=request.extra_context,
+            cv_text=cv_text,
+            extra_context=extra_context,
             student_papers=student_papers,
             n=DEFAULT_SELECTION_COUNT,
             logger=log,
         )
         log.record("stage1_fallback_used", False)
     except ValueError:
-        # Fallback: use first N papers (already sorted by citation/recency)
         selected_papers = professor_papers[:DEFAULT_SELECTION_COUNT]
         log.record("stage1_fallback_used", True)
     except RuntimeError as e:
@@ -112,24 +133,24 @@ async def generate_cold_email(request: GenerateRequest):
         [PipelineLogger.paper_summary(p) for p in selected_papers],
     )
 
-    # Step 3: fetch full text for selected professor papers (parallel)
+    # Step 3: fetch full text for selected professor papers
     selected_with_full = await fetch_papers_full_text(selected_papers)
     log.record(
         "selected_papers_post_fulltext",
         [PipelineLogger.paper_summary(p) for p in selected_with_full],
     )
 
-    # Step 4: Stage 2 generation (student papers passed as abstracts; CV is the primary student ground truth)
+    # Step 4: Stage 2 generation
     try:
         subject_line, email_body = await generate_email(
-            cv_text=request.cv_text,
-            extra_context=request.extra_context,
-            professor_name=request.professor_name,
-            university=request.university,
+            cv_text=cv_text,
+            extra_context=extra_context,
+            professor_name=professor_name,
+            university=university,
             papers=selected_with_full,
-            purpose=request.purpose,
+            purpose=purpose,
             student_papers=student_papers,
-            writing_sample=request.writing_sample,
+            writing_sample=writing_sample,
             logger=log,
         )
     except RuntimeError as e:

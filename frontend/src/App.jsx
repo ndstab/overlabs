@@ -6,7 +6,6 @@ import { PurposeDropdown } from "./components/PurposeDropdown";
 import { PersonalizationPanel } from "./components/PersonalizationPanel";
 import { EmailOutput } from "./components/EmailOutput";
 import { LoadingState } from "./components/LoadingState";
-import { usePDFParser } from "./hooks/usePDFParser";
 import { generateEmail } from "./utils/api";
 
 const INITIAL_PROFESSOR = {
@@ -16,10 +15,7 @@ const INITIAL_PROFESSOR = {
 };
 
 function App() {
-  const { parsePDF, isParsing, parseError } = usePDFParser();
-
-  const [cvFile, setCvFile] = useState(null);       // File object
-  const [cvText, setCvText] = useState("");          // Extracted plain text
+  const [cvFile, setCvFile] = useState(null);
   const [extraContext, setExtraContext] = useState("");
   const [professor, setProfessor] = useState(INITIAL_PROFESSOR);
   const [purpose, setPurpose] = useState("general");
@@ -28,18 +24,7 @@ function App() {
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateError, setGenerateError] = useState(null);
-  const [result, setResult] = useState(null);        // { subject_line, email_body }
-
-  async function handleFileSelected(file) {
-    setCvFile(file);
-    setCvText("");
-    try {
-      const text = await parsePDF(file);
-      setCvText(text);
-    } catch {
-      // parseError is set by usePDFParser
-    }
-  }
+  const [result, setResult] = useState(null);
 
   function handleProfessorChange(field, value) {
     setProfessor((prev) => ({ ...prev, [field]: value }));
@@ -52,7 +37,7 @@ function App() {
 
   function isFormValid() {
     return (
-      cvText.trim() &&
+      cvFile &&
       professor.professorName.trim() &&
       professor.university.trim() &&
       professor.semanticScholarId.trim() &&
@@ -70,7 +55,7 @@ function App() {
 
     try {
       const data = await generateEmail({
-        cv_text: cvText,
+        cv_file: cvFile,
         extra_context: extraContext,
         professor_name: professor.professorName,
         university: professor.university,
@@ -95,7 +80,6 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="mx-auto max-w-2xl px-4 py-12">
-        {/* Header */}
         <div className="mb-10 text-center">
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
             Overlabs
@@ -116,10 +100,8 @@ function App() {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6 bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
             <CVUpload
-              onFile={handleFileSelected}
+              onFile={setCvFile}
               fileName={cvFile?.name ?? null}
-              isParsing={isParsing}
-              parseError={parseError}
             />
 
             <ExtraContext value={extraContext} onChange={setExtraContext} />
@@ -144,7 +126,7 @@ function App() {
 
             <button
               type="submit"
-              disabled={!isFormValid() || isParsing}
+              disabled={!isFormValid()}
               className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               Generate email
