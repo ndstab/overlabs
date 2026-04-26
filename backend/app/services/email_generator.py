@@ -1,5 +1,6 @@
 import os
 import re
+from datetime import date
 
 import anthropic
 
@@ -80,7 +81,7 @@ CONSTRAINTS
 - DO NOT invent paraphrased "named concepts" attributed to the professor's papers. If you write a phrase like "the paper's notion of X" or "their concept of X" or "their formulation of X", X must be EXACT terminology from the paper text. If you cannot find the exact terminology, drop the named-concept framing and describe the actual technique in your own words without attributing a label to the paper.
 - When drawing a parallel between the student's work and the professor's, use this structure: "In [paper], [specific thing] happens because [mechanism]. In [student's work], [specific thing] happens because [mechanism]." This makes the parallel visible and testable. Never claim two problems are "exactly" or "precisely" the same — state how they are structurally related and where they diverge.
 - Do not invent things about the student that are not in the CV or context. Do not invent things about the professor's papers.
-- Do not state or imply the student's year of study (e.g., "second-year", "third-year PhD student") unless that exact information appears verbatim in the CV or extra context. If it is not stated, omit it entirely — do not infer it from course history, project timelines, or any other signal.
+- Student year of study: today's date is {today}. Standard program durations: BTech/BE = 4 years, MTech/ME/MS (coursework) = 2 years, MBA = 2 years, PhD = 5 years. If the CV states an expected graduation month and year, compute the student's current year of study using today's date and the program duration, and include it in the intro (e.g., "third-year BTech student"). If no graduation date appears in the CV or extra context, omit the year entirely — do not guess from course codes, project timelines, or any other signal.
 - Do not conflate the student's stated future research interests with the technical scope of their existing projects. If the CV describes a project as image-based, do not call it video-based. If a project is on classification, do not call it generation. Stick strictly to the modality, task, and methods as written in the CV. Future interests stated in the extra context belong in the framing of the ask or in the bridge between past work and the professor's research, not in the description of completed work itself.
 {writing_sample_clause}
 
@@ -198,6 +199,7 @@ async def generate_email(
         student_papers_phrase=student_papers_phrase,
         purpose_instruction=purpose_instruction,
         writing_sample_clause=writing_sample_clause,
+        today=date.today().strftime("%B %d, %Y"),
     )
 
     client = anthropic.AsyncAnthropic(api_key=api_key)
