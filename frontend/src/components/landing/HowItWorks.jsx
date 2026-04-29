@@ -9,7 +9,7 @@ const STEPS = [
   {
     n: "02",
     title: "We read their papers",
-    body: "Up to 50 abstracts go to a paper-selection model that picks 7, including method-level domain matches you'd miss scrolling their page manually.",
+    body: "Up to 50 abstracts go to a paper-selection model that picks 7, including method-level matches you’d likely miss when skimming their profile.",
   },
   {
     n: "03",
