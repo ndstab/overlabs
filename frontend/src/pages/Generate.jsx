@@ -110,7 +110,7 @@ export function Generate() {
         <div className="mx-auto max-w-5xl px-6 py-4 flex items-center justify-between">
           <Link
             to="/"
-            className="font-display text-xl font-semibold text-ink-900 tracking-tight hover:text-accent transition-colors"
+            className="font-display text-2xl font-semibold text-ink-900 tracking-tight hover:text-accent transition-colors"
           >
             Overlabs
           </Link>
@@ -187,14 +187,14 @@ export function Generate() {
                 <CVUpload onFile={setCvFile} fileName={cvFile?.name ?? null} />
               </motion.div>
 
-              <motion.div variants={fieldVariants}>
-                <ExtraContext value={extraContext} onChange={setExtraContext} />
-              </motion.div>
-
               <motion.hr variants={fieldVariants} className="border-cream-300/60" />
 
               <motion.div variants={fieldVariants}>
                 <ProfessorForm values={professor} onChange={handleProfessorChange} />
+              </motion.div>
+
+              <motion.div variants={fieldVariants}>
+                <ExtraContext value={extraContext} onChange={setExtraContext} />
               </motion.div>
 
               <motion.div variants={fieldVariants}>

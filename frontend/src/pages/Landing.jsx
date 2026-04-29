@@ -34,7 +34,7 @@ function Nav() {
       <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between">
         <Link
           to="/"
-          className="font-display text-xl font-semibold text-ink-900 tracking-tight"
+          className="font-display text-2xl font-semibold text-ink-900 tracking-tight"
         >
           Overlabs
         </Link>

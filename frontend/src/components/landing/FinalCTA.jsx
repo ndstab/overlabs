@@ -35,8 +35,8 @@ export function FinalCTA() {
               <span className="italic text-accent">real</span> email.
             </h2>
             <p className="mt-6 max-w-xl mx-auto text-ink-600 leading-relaxed">
-              Takes about 30 seconds. Your CV stays on your machine; we just
-              read its text.
+              Takes about 30 seconds. No account, no setup, just your CV and a
+              Semantic Scholar link.
             </p>
             <Link
               to="/generate"
