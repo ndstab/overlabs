@@ -13,7 +13,20 @@ const BASE = "/api";
  * @param {string} payload.purpose
  * @param {string} [payload.student_s2_id]
  * @param {string} [payload.writing_sample]
- * @returns {Promise<{ subject_line: string, email_body: string }>}
+ * @returns {Promise<{
+ *   subject_line: string,
+ *   email_body: string,
+ *   paragraphs: Array<{
+ *     text: string,
+ *     citations: Array<{
+ *       phrase: string,
+ *       paper_index: number,
+ *       paper_title: string,
+ *       paper_year: number | null,
+ *       explanation: string,
+ *     }>
+ *   }>
+ * }>}
  */
 export async function generateEmail(payload) {
   const form = new FormData();

@@ -41,4 +41,22 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  .citation-mark {
+    color: #C2410C;
+    cursor: pointer;
+    transition: text-shadow 200ms ease, color 200ms ease;
+    border-radius: 2px;
+    text-decoration: none;
+  }
+  .citation-mark:hover,
+  .citation-mark:focus-visible {
+    color: #9A3412;
+    text-shadow: 0 0 8px rgba(217, 119, 87, 0.55);
+    outline: none;
+  }
+  .citation-mark.is-active {
+    color: #9A3412;
+    text-shadow: 0 0 10px rgba(194, 65, 12, 0.55);
+  }
 }

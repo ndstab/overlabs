@@ -1,12 +1,28 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 
-export function EmailOutput({ subjectLine, emailBody, onReset }) {
+export function EmailOutput({
+  subjectLine,
+  emailBody,
+  paragraphs,
+  onReset,
+  activeCitation,
+  onCitationChange,
+}) {
   const [copied, setCopied] = useState(false);
 
-  const paragraphs = useMemo(
-    () => emailBody.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean),
-    [emailBody]
+  const renderedParagraphs = useMemo(() => {
+    if (paragraphs && paragraphs.length > 0) return paragraphs;
+    return emailBody
+      .split(/\n{2,}/)
+      .map((p) => p.trim())
+      .filter(Boolean)
+      .map((text) => ({ text, citations: [] }));
+  }, [paragraphs, emailBody]);
+
+  const totalCitations = useMemo(
+    () => renderedParagraphs.reduce((acc, p) => acc + (p.citations?.length || 0), 0),
+    [renderedParagraphs]
   );
 
   function handleCopy() {
@@ -15,6 +31,14 @@ export function EmailOutput({ subjectLine, emailBody, onReset }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
+  }
+
+  function isActive(citation) {
+    if (!activeCitation) return false;
+    return (
+      activeCitation.phrase === citation.phrase &&
+      activeCitation.paper_index === citation.paper_index
+    );
   }
 
   return (
@@ -86,6 +110,17 @@ export function EmailOutput({ subjectLine, emailBody, onReset }) {
         </div>
       </motion.div>
 
+      {totalCitations > 0 ? (
+        <motion.p
+          variants={fadeUp}
+          className="text-xs text-ink-500 leading-relaxed"
+        >
+          <span className="inline-block align-middle h-1.5 w-1.5 rounded-full bg-rust-400/70 mr-2" />
+          Highlighted phrases trace back to the professor's papers. Tap one
+          to see the connection.
+        </motion.p>
+      ) : null}
+
       <motion.div
         variants={fadeUp}
         className="overflow-hidden rounded-2xl border border-cream-300 bg-white shadow-lift"
@@ -107,18 +142,84 @@ export function EmailOutput({ subjectLine, emailBody, onReset }) {
             </p>
           </motion.div>
 
-          {paragraphs.map((para, i) => (
+          {renderedParagraphs.map((para, i) => (
             <motion.p
               key={i}
               variants={fadeUp}
               className="text-[15px] leading-relaxed text-ink-800 whitespace-pre-wrap"
             >
-              {para}
+              {renderParagraph(para, {
+                onCitationClick: onCitationChange,
+                isActive,
+              })}
             </motion.p>
           ))}
         </div>
       </motion.div>
     </motion.div>
+  );
+}
+
+function renderParagraph(paragraph, { onCitationClick, isActive }) {
+  const text = paragraph.text;
+  const citations = paragraph.citations || [];
+  if (!citations.length) return text;
+
+  const matches = [];
+  for (const citation of citations) {
+    const pos = text.indexOf(citation.phrase);
+    if (pos === -1) continue;
+    matches.push({ start: pos, end: pos + citation.phrase.length, citation });
+  }
+  matches.sort((a, b) => a.start - b.start);
+
+  // Drop overlapping spans (keep the earlier match).
+  const filtered = [];
+  for (const m of matches) {
+    const last = filtered[filtered.length - 1];
+    if (!last || m.start >= last.end) filtered.push(m);
+  }
+  if (!filtered.length) return text;
+
+  const out = [];
+  let cursor = 0;
+  filtered.forEach((m, idx) => {
+    if (m.start > cursor) {
+      out.push(text.slice(cursor, m.start));
+    }
+    out.push(
+      <CitationHighlight
+        key={`h-${idx}`}
+        text={text.slice(m.start, m.end)}
+        active={isActive(m.citation)}
+        onClick={() => onCitationClick(m.citation)}
+      />
+    );
+    cursor = m.end;
+  });
+  if (cursor < text.length) {
+    out.push(text.slice(cursor));
+  }
+  return out;
+}
+
+function CitationHighlight({ text, active, onClick }) {
+  function handleKey(e) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onClick();
+    }
+  }
+  return (
+    <span
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={handleKey}
+      className={`citation-mark${active ? " is-active" : ""}`}
+    >
+      {text}
+    </span>
   );
 }
 

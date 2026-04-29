@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { CVUpload } from "../components/CVUpload";
@@ -7,6 +7,7 @@ import { ExtraContext } from "../components/ExtraContext";
 import { PurposeDropdown } from "../components/PurposeDropdown";
 import { PersonalizationPanel } from "../components/PersonalizationPanel";
 import { EmailOutput } from "../components/EmailOutput";
+import { CitationPanel } from "../components/CitationPanel";
 import { LoadingState } from "../components/LoadingState";
 import { generateEmail } from "../utils/api";
 
@@ -32,6 +33,24 @@ export function Generate() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateError, setGenerateError] = useState(null);
   const [result, setResult] = useState(null);
+  const [activeCitation, setActiveCitation] = useState(null);
+  const [emailShift, setEmailShift] = useState(0);
+
+  useEffect(() => {
+    if (!activeCitation) {
+      setEmailShift(0);
+      return;
+    }
+    const compute = () => {
+      const w = window.innerWidth;
+      if (w >= 1280) setEmailShift(-180);
+      else if (w >= 1024) setEmailShift(-140);
+      else setEmailShift(0);
+    };
+    compute();
+    window.addEventListener("resize", compute);
+    return () => window.removeEventListener("resize", compute);
+  }, [activeCitation]);
 
   function handleProfessorChange(field, value) {
     setProfessor((prev) => ({ ...prev, [field]: value }));
@@ -82,6 +101,7 @@ export function Generate() {
   function handleReset() {
     setResult(null);
     setGenerateError(null);
+    setActiveCitation(null);
   }
 
   return (
@@ -138,14 +158,17 @@ export function Generate() {
             <motion.div
               key="result"
               initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
+              animate={{ opacity: 1, y: 0, x: emailShift }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             >
               <EmailOutput
                 subjectLine={result.subject_line}
                 emailBody={result.email_body}
+                paragraphs={result.paragraphs}
                 onReset={handleReset}
+                activeCitation={activeCitation}
+                onCitationChange={setActiveCitation}
               />
             </motion.div>
           ) : (
@@ -223,6 +246,11 @@ export function Generate() {
           )}
         </AnimatePresence>
       </div>
+
+      <CitationPanel
+        citation={activeCitation}
+        onClose={() => setActiveCitation(null)}
+      />
     </div>
   );
 }

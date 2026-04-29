@@ -142,7 +142,7 @@ async def generate_cold_email(
 
     # Step 4: Stage 2 generation
     try:
-        subject_line, email_body = await generate_email(
+        subject_line, email_body, paragraphs = await generate_email(
             cv_text=cv_text,
             extra_context=extra_context,
             professor_name=professor_name,
@@ -158,7 +158,18 @@ async def generate_cold_email(
         log.flush()
         raise HTTPException(status_code=502, detail=str(e))
 
-    log.record("output", {"subject_line": subject_line, "email_body": email_body})
+    log.record(
+        "output",
+        {
+            "subject_line": subject_line,
+            "email_body": email_body,
+            "paragraphs": paragraphs,
+        },
+    )
     log.flush()
 
-    return GenerateResponse(subject_line=subject_line, email_body=email_body)
+    return GenerateResponse(
+        subject_line=subject_line,
+        email_body=email_body,
+        paragraphs=paragraphs,
+    )

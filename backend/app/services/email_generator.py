@@ -1,6 +1,8 @@
+import json
 import os
 import re
 from datetime import date
+from typing import Any
 
 import anthropic
 
@@ -72,7 +74,7 @@ Email body, in this order:
 
 CONSTRAINTS
 
-- Length: 240-320 words for the body. Tight. No filler.
+- Length: 240-300 words for the body. HARD CAP 320. Be ruthless about cutting filler. The overlap section in particular should not exceed ~110 words across both papers combined; describe each bridge in 2-3 tight sentences, not a paragraph each. A professor will not read past 320 words.
 - Tone: professional, direct, genuine. Treat the professor as a peer in the field, not an idol.
 - Forbidden phrases (do not use any variant): "deeply inspired", "groundbreaking work", "I was fascinated by", "I have always been passionate about", "your impressive research", "I am writing to express my interest in", "I would welcome the opportunity", "it would be an honor", "I would be grateful".
 - Do not use em dashes (—) anywhere in the subject or body. Use commas, colons, periods, or parentheses instead. This applies to every sentence, including parenthetical asides and metric anchoring.
@@ -86,12 +88,41 @@ CONSTRAINTS
 - Do not conflate the student's stated future research interests with the technical scope of their existing projects. If the CV describes a project as image-based, do not call it video-based. If a project is on classification, do not call it generation. Stick strictly to the modality, task, and methods as written in the CV. Future interests stated in the extra context belong in the framing of the ask or in the bridge between past work and the professor's research, not in the description of completed work itself.
 {writing_sample_clause}
 
-OUTPUT FORMAT (exact, no markdown, no extra commentary)
+OUTPUT FORMAT
 
-SUBJECT: <subject line>
+Output STRICT JSON only. No prose, no markdown fences, no commentary outside the JSON. The schema is:
 
-EMAIL:
-<email body>
+{{
+  "subject_line": "<subject>",
+  "paragraphs": [
+    {{
+      "text": "<paragraph text exactly as it should appear in the email>",
+      "citations": [
+        {{
+          "phrase": "<exact substring of this paragraph's text>",
+          "paper_index": <1-based index into PROFESSOR'S PAPERS>,
+          "explanation": "<1-2 sentences: the specific in-paper detail this phrase draws from, and the mechanical bridge to the student's work>"
+        }}
+      ]
+    }}
+  ]
+}}
+
+Rules for "paragraphs":
+- One entry per paragraph of the final email, in order. Include the salutation, intro, student-work paragraph, overlap paragraph(s), ask, and sign-off as separate entries.
+- "text" must be the literal paragraph as it should be displayed. No leading/trailing whitespace.
+- Use plain newlines (\\n) only inside the sign-off paragraph (between "Best regards," and the student's name). Otherwise no newlines inside "text".
+
+Rules for "citations":
+- Attach citations only to paragraphs that reference the professor's papers (typically the overlap paragraph(s)). Do NOT add citations to the salutation, intro, student-work paragraph (unless that paragraph itself names a professor's paper), the ask, or the sign-off.
+- Across the two cited papers (one methodological, one domain), include 3 to 5 citations TOTAL — distributed across both, at least one citation per cited paper. Never fewer than 3, never more than 5. Do not pad the email body to fit more highlights; the word budget above is binding.
+- Each citation should highlight either (i) the paper title when first introduced in the email, or (ii) a specific technical claim, term, method, dataset, finding, or stated limitation drawn from the paper. Do not highlight generic phrases ("related work", "this approach", "the model").
+- "phrase" must be SHORT: a noun phrase or named term, ideally 2-8 words, never a full clause or sentence. Highlight the smallest substring that names the concept. Examples of good phrases: "perceptual mode collapse", "Recycle-GAN", "tri-plane representation", "Weighted Dice Loss". Examples of bad phrases: a 20-word fragment of a sentence, or any phrase that spans a comma. If the concept needs more than ~8 words to name, you are highlighting the explanation rather than the term — fix it.
+- "phrase" MUST be a verbatim substring of the corresponding paragraph's "text" — character-for-character match, including capitalization and punctuation. If you cannot find a clean exact substring for a concept, omit that citation rather than invent one.
+- Each "explanation" must be 1-2 sentences and DISTINCT from every other citation's explanation. Format: name the specific in-paper detail (technique name, finding, limitation, dataset choice, experimental result), then state the mechanical bridge to the student's prior work. Two highlights pointing at the same paper must surface different aspects of that paper — never reuse phrasing.
+- "paper_index" is 1-based, indexing into the PROFESSOR'S PAPERS list above (i.e., the [Paper N] numbers).
+
+Output JSON only. No leading text, no trailing text, no code fences.
 """
 
 
@@ -127,15 +158,121 @@ def _last_name(full_name: str) -> str:
     return parts[-1] if parts else full_name.strip()
 
 
-def _parse_response(text: str) -> tuple[str, str]:
+def _extract_json_object(text: str) -> dict[str, Any]:
+    """Extract the first balanced JSON object from a free-form Claude response."""
+    text = text.strip()
+    start = text.find("{")
+    if start == -1:
+        raise ValueError("No JSON object found in generation response.")
+
+    depth = 0
+    in_string = False
+    escape = False
+    end = -1
+    for i in range(start, len(text)):
+        c = text[i]
+        if escape:
+            escape = False
+            continue
+        if c == "\\" and in_string:
+            escape = True
+            continue
+        if c == '"':
+            in_string = not in_string
+            continue
+        if in_string:
+            continue
+        if c == "{":
+            depth += 1
+        elif c == "}":
+            depth -= 1
+            if depth == 0:
+                end = i + 1
+                break
+    if end == -1:
+        raise ValueError("Unterminated JSON object in generation response.")
+
+    return json.loads(text[start:end])
+
+
+def _validate_and_clean(
+    payload: dict[str, Any],
+    papers: list[dict],
+) -> tuple[str, list[dict]]:
+    """Validate model output, drop hallucinated citations, return (subject, paragraphs)."""
+    subject_line = (payload.get("subject_line") or "").strip() or "Research inquiry"
+    raw_paragraphs = payload.get("paragraphs") or []
+    if not isinstance(raw_paragraphs, list):
+        raise ValueError("paragraphs is not a list.")
+
+    cleaned: list[dict] = []
+    for p in raw_paragraphs:
+        if not isinstance(p, dict):
+            continue
+        text = (p.get("text") or "").strip()
+        if not text:
+            continue
+        raw_citations = p.get("citations") or []
+        citations: list[dict] = []
+        if isinstance(raw_citations, list):
+            for c in raw_citations:
+                if not isinstance(c, dict):
+                    continue
+                phrase = (c.get("phrase") or "").strip()
+                explanation = (c.get("explanation") or "").strip()
+                paper_index = c.get("paper_index")
+                if not phrase or not explanation:
+                    continue
+                if not isinstance(paper_index, int):
+                    continue
+                if not (1 <= paper_index <= len(papers)):
+                    continue
+                if phrase not in text:
+                    # Hallucinated highlight — drop silently rather than break the UI.
+                    continue
+                paper = papers[paper_index - 1]
+                citations.append(
+                    {
+                        "phrase": phrase,
+                        "paper_index": paper_index,
+                        "paper_title": paper.get("title") or "",
+                        "paper_year": paper.get("year"),
+                        "explanation": explanation,
+                    }
+                )
+        cleaned.append({"text": text, "citations": citations})
+
+    if not cleaned:
+        raise ValueError("No valid paragraphs after cleaning.")
+
+    return subject_line, cleaned
+
+
+def _fallback_paragraphs_from_text(text: str) -> tuple[str, list[dict]]:
+    """Last-ditch parser for when the model returns plain SUBJECT/EMAIL output."""
     text = text.strip()
     subject_match = re.search(r"^SUBJECT:\s*(.+)$", text, re.MULTILINE | re.IGNORECASE)
     email_match = re.search(r"^EMAIL:\s*\n([\s\S]+)", text, re.MULTILINE | re.IGNORECASE)
 
-    if not subject_match or not email_match:
-        return "Research inquiry", text
+    if subject_match and email_match:
+        subject = subject_match.group(1).strip()
+        body = email_match.group(1).strip()
+    else:
+        subject = "Research inquiry"
+        body = text
 
-    return subject_match.group(1).strip(), email_match.group(1).strip()
+    paragraphs = [
+        {"text": chunk.strip(), "citations": []}
+        for chunk in re.split(r"\n{2,}", body)
+        if chunk.strip()
+    ]
+    if not paragraphs:
+        paragraphs = [{"text": body, "citations": []}]
+    return subject, paragraphs
+
+
+def _join_body(paragraphs: list[dict]) -> str:
+    return "\n\n".join(p["text"] for p in paragraphs)
 
 
 async def generate_email(
@@ -148,10 +285,12 @@ async def generate_email(
     student_papers: list[dict],
     writing_sample: str | None,
     logger=None,
-) -> tuple[str, str]:
+) -> tuple[str, str, list[dict]]:
     """
     Stage 2: generate the email using full paper content where available.
-    Returns (subject_line, email_body).
+    Returns (subject_line, email_body, paragraphs) where paragraphs is a list of
+    {text, citations} dicts. citations is a list of
+    {phrase, paper_index, paper_title, paper_year, explanation}.
     """
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
@@ -210,7 +349,7 @@ async def generate_email(
 
     message = await client.messages.create(
         model=GENERATION_MODEL,
-        max_tokens=1500,
+        max_tokens=3000,
         messages=[{"role": "user", "content": prompt}],
     )
 
@@ -218,4 +357,16 @@ async def generate_email(
     if logger is not None:
         logger.record("stage2_raw_response", raw)
 
-    return _parse_response(raw)
+    try:
+        payload = _extract_json_object(raw)
+        subject_line, paragraphs = _validate_and_clean(payload, papers)
+        if logger is not None:
+            logger.record("stage2_parse_mode", "json")
+    except (json.JSONDecodeError, ValueError) as e:
+        if logger is not None:
+            logger.record("stage2_parse_error", str(e))
+            logger.record("stage2_parse_mode", "fallback_plaintext")
+        subject_line, paragraphs = _fallback_paragraphs_from_text(raw)
+
+    email_body = _join_body(paragraphs)
+    return subject_line, email_body, paragraphs
