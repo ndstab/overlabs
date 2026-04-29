@@ -9,12 +9,12 @@ const STEPS = [
   {
     n: "02",
     title: "We read their papers",
-    body: "Up to 50 abstracts go to a paper-selection model that picks 7, including mechanism-level domain matches you'd miss scrolling their page manually.",
+    body: "Up to 50 abstracts go to a paper-selection model that picks 7, including method-level domain matches you'd miss scrolling their page manually.",
   },
   {
     n: "03",
     title: "We draft the email",
-    body: "A second model reads the full text of those 7 papers, finds the mechanistic connections to your work, and writes a draft you'd be proud to send.",
+    body: "A second model reads the full text of those 7 papers, finds the method-level overlap to your work, and writes a draft you'd be proud to send.",
   },
 ];
 

@@ -25,8 +25,8 @@ export function BeforeAfter() {
             body="I'm interested in your work on generative models. Would love to discuss opportunities."
           />
           <Card
-            title="After (paper-grounded)"
-            body="An email that names the professor's paper-level mechanisms, connects them to your work, and asks a concrete next step."
+            title="After (Overlabs)"
+            body="Your work on Recycle-GAN highlights how reconstruction loss can cause perceptual mode collapse. In my project, I address a similar failure mode using cross-attention-based style injection, which decouples style from reconstruction."
           />
         </div>
       </div>

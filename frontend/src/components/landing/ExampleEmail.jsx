@@ -43,7 +43,7 @@ const PARAGRAPHS = [
         paper_title: PAPERS[0].title,
         paper_year: PAPERS[0].year,
         explanation:
-          "Recycle-GAN argues that temporal predictors P_X and P_Y add constraints that help escape spatial-only cycle-consistency local minima. This is the mechanism worth testing when extending GENESIS-style reference injection to video, where temporal consistency is not guaranteed by a static-image architecture.",
+          "Recycle-GAN argues that temporal predictors P_X and P_Y add constraints that help escape spatial-only cycle-consistency local minima. This is what to test when extending GENESIS-style reference injection to video, where temporal consistency is not guaranteed by a static-image architecture.",
       },
     ],
   },
@@ -176,9 +176,9 @@ function DefaultDescription() {
         Civil Engg undergrad to CMU computer-vision PI.
       </h2>
       <p className="text-ink-600 leading-relaxed mb-5">
-        Every technical claim is traceable to a specific paper mechanism.
-        Tap a highlighted phrase to see the exact overlap behind the
-        sentence.
+        Notice how the email doesn't just cite papers. It reasons about
+        paper-level failure modes, then maps your method-level overlap to
+        their work.
       </p>
       <div className="rounded-xl border border-cream-300/70 bg-white px-4 py-3.5">
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500 mb-1.5">

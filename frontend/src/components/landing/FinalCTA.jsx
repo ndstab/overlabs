@@ -36,8 +36,8 @@ export function FinalCTA() {
             </h2>
             <p className="mt-6 max-w-xl mx-auto text-ink-600 leading-relaxed">
               Takes about 30 seconds. No account, no setup, just your CV and a
-              Semantic Scholar link, and it becomes the kind of email professors
-              reply to.
+              Semantic Scholar link—and send something that earns a reply
+              because it reads like you already belong in the lab.
             </p>
             <Link
               to="/generate"
