@@ -9,7 +9,7 @@ const STEPS = [
   {
     n: "02",
     title: "We read their papers",
-    body: "Up to 50 abstracts go to a paper-selection model that picks 7, including the non-obvious domain matches you'd miss scrolling their page manually.",
+    body: "Up to 50 abstracts go to a paper-selection model that picks 7, including mechanism-level domain matches you'd miss scrolling their page manually.",
   },
   {
     n: "03",
@@ -41,7 +41,7 @@ export function HowItWorks() {
               How it works
             </p>
             <h2 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-ink-900 text-balance">
-              A two-stage pipeline, not a template-filler.
+              A two-stage research-compatibility matcher, not a template-filler.
             </h2>
           </motion.div>
 

@@ -31,7 +31,7 @@ export function Hero() {
             variants={fadeUp}
             className="mx-auto mt-7 max-w-2xl text-lg text-ink-600 leading-relaxed text-balance"
           >
-            Overlabs reads the professor's papers, finds the non-obvious
+            Overlabs reads the professor's papers, finds mechanism-level
             connections to your work, and drafts a concise email that earns a
             reply.
           </motion.p>

@@ -176,9 +176,9 @@ function DefaultDescription() {
         Civil Engg undergrad to CMU computer-vision PI.
       </h2>
       <p className="text-ink-600 leading-relaxed mb-5">
-        Two papers drive the overlap: one methodological (Recycle-GAN) and
-        one domain-proximate (pix2pix3D). Tap a highlighted phrase to see the
-        exact paper mechanism behind it.
+        Every technical claim is traceable to a specific paper mechanism.
+        Tap a highlighted phrase to see the exact overlap behind the
+        sentence.
       </p>
       <div className="rounded-xl border border-cream-300/70 bg-white px-4 py-3.5">
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-500 mb-1.5">

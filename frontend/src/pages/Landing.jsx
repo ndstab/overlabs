@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Hero } from "../components/landing/Hero";
 import { Problem } from "../components/landing/Problem";
 import { HowItWorks } from "../components/landing/HowItWorks";
+import { BeforeAfter } from "../components/landing/BeforeAfter";
 import { ExampleEmail } from "../components/landing/ExampleEmail";
 import { FinalCTA } from "../components/landing/FinalCTA";
 import { Footer } from "../components/landing/Footer";
@@ -15,6 +16,7 @@ export function Landing() {
         <Hero />
         <Problem />
         <HowItWorks />
+        <BeforeAfter />
         <ExampleEmail />
         <FinalCTA />
       </main>
