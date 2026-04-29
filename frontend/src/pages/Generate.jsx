@@ -139,7 +139,7 @@ export function Generate() {
             Write your email.
           </h1>
           <p className="mt-3 text-ink-600 leading-relaxed">
-            Upload your CV, point to a professor, and get a draft grounded in
+            Upload your CV, point to a professor, and get a ready-to-send email grounded in
             their actual papers.
           </p>
         </motion.div>

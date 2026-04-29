@@ -35,7 +35,7 @@ PURPOSE_INSTRUCTIONS: dict[str, str] = {
 
 
 PROMPT_TEMPLATE = """\
-You are writing a cold email from a student to a professor seeking a research opportunity. The point of the email is to land a real conversation by demonstrating, in 200-300 words, that the student has actually read the professor's work and has specific, credible reasons to want to work with them.
+You are writing a cold email from a student to a professor seeking a research opportunity. The point of the email is to land a real conversation by demonstrating, in 250-280 words, that the student has actually read the professor's work and has specific, credible reasons to want to work with them.
 
 STUDENT
 CV:
@@ -61,12 +61,12 @@ Email body, in this order:
 
 2. One concrete intro sentence: current role/institution + the student's primary technical focus area. If the degree program is not in the professor's field, bridge it through named facts only — mention the specific minor or the project that demonstrates the focus. Do not write any sentence that observes, acknowledges, or comments on the degree mismatch; name the facts and let the reader draw the inference. If the degree is in-field, omit the bridge entirely.
 
-3. 2-3 sentences on the student's most relevant work, pulled from the CV{student_papers_phrase}. Before writing this section: rank every project from the CV by direct relevance to THIS professor's papers. Include only the top 1-2. For each included project, you must be able to state: "This connects to [Professor's Paper X] because both [specific shared method, task type, or problem]." If you cannot complete that sentence for a project, omit it — no matter how technically impressive it is. Describe included work by what it produced (a technique, a result, a finding), not by effort or intent. If the student built a novel method with comparisons to baselines, that is research; describe it as such. When citing metrics, anchor them: name the baseline or direction (e.g., "0.44 LPIPS (lower is better), outperforming the StyleGAN baseline").
+3. The student-work paragraph. Maximum 70 words. 2-3 sentences. Include only the single most directly relevant project. Describe what it produced (a technique, a result, a finding), not effort or intent. When citing metrics, anchor them (e.g., "0.44 LPIPS (lower is better), outperforming the StyleGAN baseline"). Before writing: rank every project from the CV by direct relevance to THIS professor's papers. The one project that earns a sentence of the form "This connects to [Professor's Paper X] because both [shared method, task, or problem]" gets included. If none passes that test, pick the closest and note the shared problem framing only.
 
-4. The overlap section, 3-5 sentences. You MUST cite EXACTLY TWO of the professor's papers explicitly, chosen to cover DISTINCT connection types:
+4. The overlap section. HARD LIMIT: 4-5 sentences TOTAL across both papers, maximum 110 words for the entire section. You MUST cite EXACTLY TWO of the professor's papers:
    - Paper A — methodological bridge: a named technique, formulation, or stated limitation in the paper that the student's prior technical work directly engages with at the mechanism level.
-   - Paper B — domain bridge: a paper closer to the student's specific subject matter (same task type, dataset family, modality, or applied problem they have actually worked on). This is often the less-obvious pick and is where the email gets its credibility.
-   For EACH of the two papers, you must (a) name a concrete detail from the paper — a method name, a specific result, a stated failure mode, a dataset choice, an experimental finding — and (b) state in mechanical terms how a specific technique or result from the student's own completed work addresses, extends, contrasts with, or is constrained by that detail.
+   - Paper B — domain bridge: a paper closer to the student's specific subject matter (same task type, dataset family, modality, or applied problem they have actually worked on).
+   Sentence budget: 2 sentences per paper (1 naming the in-paper mechanism, 1 stating the mechanical connection to the student's work), plus at most 1 closing question sentence. That is 4-5 sentences total. Do not write a paragraph per paper; write 1-2 sentences per paper and no more.
 
 5. Ask. The ask must take this form: a direct statement of what you want + one concrete follow-up question. Model: "I'd like to discuss [specific thing]. Would you have [time] for a call?" Do not soften or hedge: "I would welcome", "I'd love the opportunity", "I'm hoping to", "if you'd be open" are all forms of asking permission. State intent, then ask a yes/no question.
 
@@ -74,7 +74,7 @@ Email body, in this order:
 
 CONSTRAINTS
 
-- Length: 240-300 words for the body. HARD CAP 320. Be ruthless about cutting filler. The overlap section in particular should not exceed ~110 words across both papers combined; describe each bridge in 2-3 tight sentences, not a paragraph each. A professor will not read past 320 words.
+- Length: 250-280 words for the body. HARD CAP 300. Each section has its own word budget: intro 1 sentence (~25 words), student work 2-3 sentences (~65 words), overlap 4-5 sentences (~100 words), ask 2 sentences (~30 words). If you are over 280 words, cut from the overlap section first — shorten each bridge to its single sharpest sentence and drop the rest. A professor stops reading at 300 words.
 - Tone: professional, direct, genuine. Treat the professor as a peer in the field, not an idol.
 - Forbidden phrases (do not use any variant): "deeply inspired", "groundbreaking work", "I was fascinated by", "I have always been passionate about", "your impressive research", "I am writing to express my interest in", "I would welcome the opportunity", "it would be an honor", "I would be grateful".
 - Do not use em dashes (—) anywhere in the subject or body. Use commas, colons, periods, or parentheses instead. This applies to every sentence, including parenthetical asides and metric anchoring.
