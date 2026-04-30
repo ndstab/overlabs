@@ -12,3 +12,4 @@ backend/app/services/__pycache__/*
 backend/app/models/__pycache__/*
 backend/app/models/schemas/__pycache__/*
 backend/app/models/schemas/__pycache__/*
+backend/invite_codes.sqlite3

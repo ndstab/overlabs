@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes.generate import router as generate_router
+from app.services.invite_codes import init_invite_code_store
 
 # Explicitly resolve .env relative to this file so it works regardless of CWD
 load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / ".env")
@@ -20,6 +21,11 @@ app.add_middleware(
 )
 
 app.include_router(generate_router)
+
+
+@app.on_event("startup")
+async def startup() -> None:
+    init_invite_code_store()
 
 
 @app.get("/health")

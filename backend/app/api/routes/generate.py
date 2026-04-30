@@ -13,6 +13,13 @@ from app.services.semantic_scholar import (
 from app.services.paper_selector import select_relevant_papers
 from app.services.paper_fetcher import fetch_papers_full_text
 from app.services.email_generator import generate_email
+from app.services.invite_codes import (
+    GlobalGenerationCapReachedError,
+    InvalidInviteCodeError,
+    InviteCodeExhaustedError,
+    consume_invite_use,
+    refund_invite_use,
+)
 from app.services.pdf_parser import extract_text_from_pdf
 from app.services.pipeline_logger import PipelineLogger
 
@@ -28,6 +35,7 @@ async def generate_cold_email(
     professor_name: str = Form(...),
     university: str = Form(...),
     semantic_scholar_id: str = Form(...),
+    invite_code: str = Form(...),
     purpose: Purpose = Form("general"),
     extra_context: str = Form(""),
     student_s2_id: Optional[str] = Form(None),
@@ -51,6 +59,7 @@ async def generate_cold_email(
             "professor_name": professor_name,
             "university": university,
             "semantic_scholar_id": semantic_scholar_id,
+            "invite_code": invite_code[:4] + "***" if invite_code else "",
             "purpose": purpose,
             "student_s2_id": student_s2_id,
             "cv_text_chars": len(cv_text),
@@ -140,6 +149,22 @@ async def generate_cold_email(
         [PipelineLogger.paper_summary(p) for p in selected_with_full],
     )
 
+    # Consume usage right before stage-2 generation (the paid model call).
+    try:
+        consume_invite_use(invite_code)
+    except InvalidInviteCodeError as e:
+        log.record("error", f"invite code invalid: {e}")
+        log.flush()
+        raise HTTPException(status_code=403, detail=str(e))
+    except InviteCodeExhaustedError as e:
+        log.record("error", f"invite code exhausted: {e}")
+        log.flush()
+        raise HTTPException(status_code=403, detail=str(e))
+    except GlobalGenerationCapReachedError as e:
+        log.record("error", f"global cap reached: {e}")
+        log.flush()
+        raise HTTPException(status_code=429, detail=str(e))
+
     # Step 4: Stage 2 generation
     try:
         subject_line, email_body, paragraphs = await generate_email(
@@ -154,6 +179,7 @@ async def generate_cold_email(
             logger=log,
         )
     except RuntimeError as e:
+        refund_invite_use(invite_code)
         log.record("error", f"stage2 runtime: {e}")
         log.flush()
         raise HTTPException(status_code=502, detail=str(e))

@@ -10,6 +10,7 @@ const BASE = "/api";
  * @param {string} payload.professor_name
  * @param {string} payload.university
  * @param {string} payload.semantic_scholar_id
+ * @param {string} payload.invite_code
  * @param {string} payload.purpose
  * @param {string} [payload.student_s2_id]
  * @param {string} [payload.writing_sample]
@@ -34,6 +35,7 @@ export async function generateEmail(payload) {
   form.append("professor_name", payload.professor_name);
   form.append("university", payload.university);
   form.append("semantic_scholar_id", payload.semantic_scholar_id);
+  form.append("invite_code", payload.invite_code);
   form.append("purpose", payload.purpose);
   form.append("extra_context", payload.extra_context ?? "");
   if (payload.student_s2_id) form.append("student_s2_id", payload.student_s2_id);

@@ -29,6 +29,7 @@ export function Generate() {
   const [purpose, setPurpose] = useState("general");
   const [studentS2Id, setStudentS2Id] = useState("");
   const [writingSample, setWritingSample] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateError, setGenerateError] = useState(null);
@@ -67,6 +68,7 @@ export function Generate() {
       professor.professorName.trim() &&
       professor.university.trim() &&
       professor.semanticScholarId.trim() &&
+      inviteCode.trim() &&
       purpose
     );
   }
@@ -86,6 +88,7 @@ export function Generate() {
         professor_name: professor.professorName,
         university: professor.university,
         semantic_scholar_id: professor.semanticScholarId,
+        invite_code: inviteCode.trim(),
         purpose,
         student_s2_id: studentS2Id.trim() || undefined,
         writing_sample: writingSample.trim() || undefined,
@@ -191,6 +194,25 @@ export function Generate() {
 
               <motion.div variants={fieldVariants}>
                 <ProfessorForm values={professor} onChange={handleProfessorChange} />
+              </motion.div>
+
+              <motion.div variants={fieldVariants}>
+                <div>
+                  <label
+                    htmlFor="invite-code"
+                    className="block text-sm font-medium text-ink-800 mb-1.5"
+                  >
+                    Invite code <span className="text-rust-500">*</span>
+                  </label>
+                  <input
+                    id="invite-code"
+                    type="text"
+                    value={inviteCode}
+                    onChange={(e) => setInviteCode(e.target.value)}
+                    placeholder="Enter your testing invite code"
+                    className="w-full rounded-lg border border-cream-300 bg-white px-3.5 py-2.5 text-sm text-ink-900 placeholder-ink-500/60 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/15 transition-all"
+                  />
+                </div>
               </motion.div>
 
               <motion.div variants={fieldVariants}>
