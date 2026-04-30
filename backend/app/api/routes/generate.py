@@ -18,6 +18,7 @@ from app.services.invite_codes import (
     InvalidInviteCodeError,
     InviteCodeExhaustedError,
     consume_invite_use,
+    ensure_invite_code_available,
     refund_invite_use,
 )
 from app.services.pdf_parser import extract_text_from_pdf
@@ -43,6 +44,16 @@ async def generate_cold_email(
 ):
     s2_key = os.environ.get("SEMANTIC_SCHOLAR_API_KEY")
     log = PipelineLogger()
+
+    # Reject invalid/exhausted codes before running the expensive pipeline.
+    try:
+        ensure_invite_code_available(invite_code)
+    except InvalidInviteCodeError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except InviteCodeExhaustedError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except GlobalGenerationCapReachedError as e:
+        raise HTTPException(status_code=429, detail=str(e))
 
     # Parse CV PDF server-side
     if cv_file.content_type not in ("application/pdf", "application/octet-stream"):
@@ -118,6 +129,22 @@ async def generate_cold_email(
             detail="No papers with abstracts found for this professor on Semantic Scholar.",
         )
 
+    # Consume usage before any model call (stage 1 and stage 2 both cost money).
+    try:
+        consume_invite_use(invite_code)
+    except InvalidInviteCodeError as e:
+        log.record("error", f"invite code invalid at consume: {e}")
+        log.flush()
+        raise HTTPException(status_code=403, detail=str(e))
+    except InviteCodeExhaustedError as e:
+        log.record("error", f"invite code exhausted at consume: {e}")
+        log.flush()
+        raise HTTPException(status_code=403, detail=str(e))
+    except GlobalGenerationCapReachedError as e:
+        log.record("error", f"global cap reached at consume: {e}")
+        log.flush()
+        raise HTTPException(status_code=429, detail=str(e))
+
     # Step 2: Stage 1 selection
     try:
         selected_papers = await select_relevant_papers(
@@ -133,6 +160,7 @@ async def generate_cold_email(
         selected_papers = professor_papers[:DEFAULT_SELECTION_COUNT]
         log.record("stage1_fallback_used", True)
     except RuntimeError as e:
+        refund_invite_use(invite_code)
         log.record("error", f"stage1 runtime: {e}")
         log.flush()
         raise HTTPException(status_code=502, detail=str(e))
@@ -148,22 +176,6 @@ async def generate_cold_email(
         "selected_papers_post_fulltext",
         [PipelineLogger.paper_summary(p) for p in selected_with_full],
     )
-
-    # Consume usage right before stage-2 generation (the paid model call).
-    try:
-        consume_invite_use(invite_code)
-    except InvalidInviteCodeError as e:
-        log.record("error", f"invite code invalid: {e}")
-        log.flush()
-        raise HTTPException(status_code=403, detail=str(e))
-    except InviteCodeExhaustedError as e:
-        log.record("error", f"invite code exhausted: {e}")
-        log.flush()
-        raise HTTPException(status_code=403, detail=str(e))
-    except GlobalGenerationCapReachedError as e:
-        log.record("error", f"global cap reached: {e}")
-        log.flush()
-        raise HTTPException(status_code=429, detail=str(e))
 
     # Step 4: Stage 2 generation
     try:

@@ -168,6 +168,39 @@ def consume_invite_use(invite_code: str) -> None:
         conn.commit()
 
 
+def ensure_invite_code_available(invite_code: str) -> None:
+    code = invite_code.strip()
+    if not code:
+        raise InvalidInviteCodeError("Invite code is required.")
+
+    cap = _global_cap()
+    with _connect() as conn:
+        if cap is not None:
+            total_used = conn.execute(
+                "SELECT COALESCE(SUM(used_count), 0) AS total_used FROM invite_codes"
+            ).fetchone()["total_used"]
+            if int(total_used) >= cap:
+                raise GlobalGenerationCapReachedError(
+                    "Testing limit reached. Please ask for a new invite batch."
+                )
+
+        row = conn.execute(
+            """
+            SELECT code, max_uses, used_count, is_active
+            FROM invite_codes
+            WHERE code = ?
+            """,
+            (code,),
+        ).fetchone()
+
+        if row is None or int(row["is_active"]) != 1:
+            raise InvalidInviteCodeError("Invalid invite code.")
+        if int(row["used_count"]) >= int(row["max_uses"]):
+            raise InviteCodeExhaustedError(
+                "This invite code has already been used."
+            )
+
+
 def refund_invite_use(invite_code: str) -> None:
     code = invite_code.strip()
     if not code:
