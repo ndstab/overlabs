@@ -1,4 +1,4 @@
-const BASE = "/api";
+const BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 /**
  * Calls POST /generate with multipart/form-data and returns { subject_line, email_body }.
